@@ -116,7 +116,7 @@ with open(sys.argv[1], 'w') as handle:
         'audiences': ['api://AzureADTokenExchange'],
     }, handle)
 PY
-az ad app federated-credential create --id "$client_id" --parameters "@$federation_file" --output none
+az ad app federated-credential create --id "$client_id" --parameters "$federation_file" --output none
 # Keep deployments disabled until every variable and secret has been configured.
 gh variable set AZURE_CLIENT_ID --repo "$repo" --body "$client_id"
 gh variable set AZURE_TENANT_ID --repo "$repo" --body "$(az account show --query tenantId -o tsv)"
