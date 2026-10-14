@@ -43,7 +43,7 @@ bash scripts/provision-azure.sh
 
 The script verifies the GitHub login is LethaboDev and the selected Azure subscription is named Azure for Students. It refuses to reuse an existing resource group. It creates new passwords and a new JWT secret, stores them in App Service settings, and never copies data or credentials from the original deployment. PostgreSQL requires verified TLS and only permits the backend's possible outbound IP addresses. If you change the App Service plan, refresh these firewall rules.
 
-The script configures GitHub variables and transfers the Static Web Apps deployment token directly to an environment secret, without printing it. The `azure` environment only permits deployment from `main`. An Entra app registration is required for OIDC; your tenant must allow you to create it and assign the scoped role.
+The script configures GitHub variables and transfers the Static Web Apps deployment token directly to a repository secret, without printing it. The Azure identity only trusts workflows from this repository’s `main` branch, and deployment jobs also check that branch. The setup works with a private repository on GitHub Free without paid environment features. An Entra app registration is required for OIDC; your tenant must allow you to create it and assign the scoped role.
 
 Before provisioning, check resource estimates and PostgreSQL allowance in your subscription and add a credit budget alert in Azure Cost Management. A budget alert sends notifications; it does not stop resources. Once all configuration succeeds, the script enables deployment and starts the GitHub workflow automatically.
 

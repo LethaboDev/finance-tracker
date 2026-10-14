@@ -101,26 +101,19 @@ with open(sys.argv[1], 'w') as handle:
     json.dump({
         'name': 'finance-tracker-github',
         'issuer': 'https://token.actions.githubusercontent.com',
-        'subject': 'repo:LethaboDev/finance-tracker:environment:azure',
+        'subject': 'repo:LethaboDev/finance-tracker:ref:refs/heads/main',
         'audiences': ['api://AzureADTokenExchange'],
     }, handle)
 PY
 az ad app federated-credential create --id "$client_id" --parameters "@$federation_file" --output none
 # Keep deployments disabled until every variable and secret has been configured.
-gh api --method PUT "repos/$repo/environments/azure" >/dev/null
-gh api --method PUT "repos/$repo/environments/azure" \
-  --input - >/dev/null <<'JSON'
-{"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true}}
-JSON
-gh api --method POST "repos/$repo/environments/azure/deployment-branch-policies" \
-  -f name=main -f type=branch >/dev/null
 gh variable set AZURE_CLIENT_ID --repo "$repo" --body "$client_id"
 gh variable set AZURE_TENANT_ID --repo "$repo" --body "$(az account show --query tenantId -o tsv)"
 gh variable set AZURE_SUBSCRIPTION_ID --repo "$repo" --body "$AZURE_SUBSCRIPTION_ID"
 gh variable set AZURE_WEBAPP_NAME --repo "$repo" --body "$webapp"
 gh variable set NEXT_PUBLIC_API_URL --repo "$repo" --body "https://$backend_host"
 az staticwebapp secrets list --name "$staticapp" --resource-group "$resource_group" \
-  --query properties.apiKey -o tsv | gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN --repo "$repo" --env azure
+  --query properties.apiKey -o tsv | gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN --repo "$repo"
 
 echo "Resources created in $resource_group"
 echo "Backend: https://$backend_host"

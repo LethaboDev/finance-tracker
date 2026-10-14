@@ -42,9 +42,8 @@ jobs:
 
   backend:
     needs: verify
-    if: vars.AZURE_DEPLOY_ENABLED == 'true'
+    if: vars.AZURE_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: azure
     permissions:
       contents: read
       id-token: write
@@ -65,9 +64,8 @@ jobs:
 
   frontend:
     needs: backend
-    if: vars.AZURE_DEPLOY_ENABLED == 'true'
+    if: vars.AZURE_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: azure
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
