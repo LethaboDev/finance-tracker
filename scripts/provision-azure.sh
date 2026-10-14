@@ -32,11 +32,10 @@ plan="ft-lethabodev-free-$suffix"
 export FT_DB_PASSWORD="Aa1!$(openssl rand -hex 24)"
 export FT_JWT_SECRET="$(openssl rand -base64 64 | tr -d '\n')"
 secret_file="$(mktemp)"
-federation_file="$(mktemp)"
-chmod 600 "$secret_file" "$federation_file"
-trap 'rm -f "$secret_file" "$federation_file"; unset FT_DB_PASSWORD FT_JWT_SECRET' EXIT
+chmod 600 "$secret_file"
+trap 'rm -f "$secret_file"; unset FT_DB_PASSWORD FT_JWT_SECRET' EXIT
 
-for provider in Microsoft.Web Microsoft.DBforPostgreSQL Microsoft.Storage; do
+for provider in Microsoft.Web Microsoft.DBforPostgreSQL Microsoft.Storage Microsoft.ManagedIdentity; do
   az provider register --namespace "$provider" --wait --output none
 done
 echo "Creating your isolated resource group in $AZURE_LOCATION"
@@ -98,25 +97,22 @@ az webapp config appsettings set --name "$webapp" --resource-group "$resource_gr
 
 # GitHub uses short-lived OIDC credentials scoped to this backend and frontend storage.
 echo "Configuring your GitHub deployment identity"
-client_id="$(az ad app create --display-name "$webapp-github" --query appId -o tsv)"
-principal_id="$(az ad sp create --id "$client_id" --query id -o tsv)"
+identity_name="$webapp-github"
+az identity create --name "$identity_name" --resource-group "$resource_group" \
+  --location "$AZURE_LOCATION" --output none
+client_id="$(az identity show --name "$identity_name" --resource-group "$resource_group" --query clientId -o tsv)"
+principal_id="$(az identity show --name "$identity_name" --resource-group "$resource_group" --query principalId -o tsv)"
 webapp_id="$(az webapp show --name "$webapp" --resource-group "$resource_group" --query id -o tsv)"
 az role assignment create --assignee-object-id "$principal_id" --assignee-principal-type ServicePrincipal \
   --role 'Website Contributor' --scope "$webapp_id" --output none
 storage_id="$(az storage account show --name "$storage" --resource-group "$resource_group" --query id -o tsv)"
 az role assignment create --assignee-object-id "$principal_id" --assignee-principal-type ServicePrincipal \
   --role 'Storage Blob Data Contributor' --scope "$storage_id" --output none
-python3 - "$federation_file" <<'PY'
-import json, sys
-with open(sys.argv[1], 'w') as handle:
-    json.dump({
-        'name': 'finance-tracker-github',
-        'issuer': 'https://token.actions.githubusercontent.com',
-        'subject': 'repo:LethaboDev/finance-tracker:ref:refs/heads/main',
-        'audiences': ['api://AzureADTokenExchange'],
-    }, handle)
-PY
-az ad app federated-credential create --id "$client_id" --parameters "$federation_file" --output none
+az identity federated-credential create --name finance-tracker-github \
+  --identity-name "$identity_name" --resource-group "$resource_group" \
+  --issuer https://token.actions.githubusercontent.com \
+  --subject repo:LethaboDev/finance-tracker:ref:refs/heads/main \
+  --audiences api://AzureADTokenExchange --output none
 # Keep deployments disabled until every variable and secret has been configured.
 gh variable set AZURE_CLIENT_ID --repo "$repo" --body "$client_id"
 gh variable set AZURE_TENANT_ID --repo "$repo" --body "$(az account show --query tenantId -o tsv)"
