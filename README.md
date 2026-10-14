@@ -1,45 +1,91 @@
 # Finance Tracker
 
-Independent personal finance application: Next.js static frontend, Java 17 / Spring Boot API, and PostgreSQL.
+A personal finance application for recording income and expenses, tracking balances, and reviewing transactions. Built with Next.js, Java 17 / Spring Boot, and PostgreSQL.
 
-## Backend
+**[Open Finance Tracker](https://ftlethabodev0d15ae8b.z1.web.core.windows.net/)**
 
-Create a new PostgreSQL database in your own account. Supply these environment variables before running `./mvnw spring-boot:run`:
+## Features
 
-- `DB_URL`: JDBC PostgreSQL URL (`jdbc:postgresql://HOST:5432/DATABASE`)
-- `DB_USERNAME` and `DB_PASSWORD`: credentials for your new database
-- `JWT_SECRET`: a newly generated secret (generate with `openssl rand -base64 64`)
-- `FRONTEND_ORIGINS`: comma-separated exact frontend origins, such as `https://YOUR-USERNAME.github.io` (no path)
-- `PORT`: optional; defaults to 8080
+- Account registration and sign-in.
+- Income and expense tracking with categories and dates.
+- Personal transaction history and balance summaries.
+- An admin dashboard for registered users, transactions, and overall financial statistics.
 
-Production configuration deliberately has no database credentials or signing-secret fallback. Do not reuse the previous deployment's database, signing secret, user accounts, backups, or environment variables.
+Admin functions require the `ADMIN` role, checked by the backend. Ordinary registration creates a `USER` account. Site visit analytics and sign-in history are not yet implemented.
 
-Run backend tests with `./mvnw test`. Tests use the `local` profile and an isolated in-memory database; its signing secret is for tests only.
+## Ownership and hosting
 
-## Frontend
+Owned and maintained by [LethaboDev](https://github.com/LethaboDev). Repository commits use `LethaboDev <lethabomaredi30@gmail.com>`.
 
-In `frontend`, copy `.env.example` to `.env.local`, set `NEXT_PUBLIC_API_URL` to your own backend, then run `npm ci` and `npm run dev`. Use `npm test` for tests and `npm run build` to export static files to `frontend/out`.
+This is a standalone repository with fresh history. The application uses its own Azure resources, database, and credentials; it does not depend on the original owner's hosting or database. No previous user accounts or data were imported.
 
-## Azure hosting
+| Component | Deployment |
+| --- | --- |
+| Frontend | [Azure Storage static website](https://ftlethabodev0d15ae8b.z1.web.core.windows.net/) |
+| Backend | [Spring Boot API on Azure App Service](https://ft-lethabodev-0d15ae8b.azurewebsites.net), F1 Free plan |
+| Database | Azure Database for PostgreSQL Flexible Server |
+| Region | South Africa North |
 
-Owner: [LethaboDev](https://github.com/LethaboDev). Commit email: `lethabomaredi30@gmail.com`.
+Resources run in the owner's Azure for Students subscription. University administrator access inherited from that subscription still applies. PostgreSQL and storage usage may consume student credit; check Azure Cost Management for current usage.
 
-Use your Azure for Students subscription. The frontend deploys to Azure Storage static website hosting in South Africa North, the backend to Azure App Service (F1 Free), and data lives in a new Azure PostgreSQL database. See [the Azure setup guide](deploy/AZURE.md) and `scripts/provision-azure.sh` for account setup, costs, provisioning, and deployment.
+GitHub Actions runs backend and frontend tests on `main`, then deploys successful builds to Azure. Deployment is enabled and uses GitHub OIDC instead of stored deployment passwords. See the [Azure setup guide](deploy/AZURE.md) for infrastructure details. The [provisioning script](scripts/provision-azure.sh) is for a new deployment and refuses to reuse the existing resource group.
 
-GitHub Actions runs tests on `main`; Azure deployment stays disabled until your resources and credentials are configured. GitHub Pages is no longer the deployment target.
+## Local development
 
-The root `index.html` is a legacy frontend, outside the Next.js deployment. It defaults to localhost; configure its API constant with your own backend only if you choose to deploy it.
+### Backend
 
-## Independent ownership
+Install Java 17 or later and create a local PostgreSQL database. Set these environment variables:
 
-Local code preparation does not transfer cloud resources or repository ownership. Before going live:
+| Variable | Value |
+| --- | --- |
+| `DB_URL` | JDBC URL, such as `jdbc:postgresql://localhost:5432/finance_tracker` |
+| `DB_USERNAME` | Your local database username |
+| `DB_PASSWORD` | Your local database password |
+| `JWT_SECRET` | A fresh signing secret; generate one with `openssl rand -base64 64` |
+| `FRONTEND_ORIGINS` | Exact allowed origins, comma-separated; use `http://localhost:3000` locally |
+| `PORT` | Optional; defaults to `8080` |
 
-1. Use a new standalone GitHub repository in your account, rather than a fork, with fresh history and your own commit name and email. Original history should remain only in a separate local backup.
-2. Deploy the backend in a project owned and billed by your own hosting account.
-3. Provision a new database in your own account and configure the environment variables above. Start with an empty database so existing users and administrators are not carried over.
-4. Deploy the frontend from your new repository and point it at your new backend.
-5. Verify account ownership, collaborators, deploy keys, OAuth/GitHub app access, CI secrets, domain/DNS access, and billing in your own accounts. Use only your credentials and remove any unwanted collaborator access from your new resources.
-6. Register your own app account. If you need admin access, promote only your account to `ADMIN` directly in your new database; ordinary registration creates `USER` accounts.
-7. Verify registration, login, and transactions against the new backend, and check browser network requests for the expected API host.
+Run from the repository root:
 
-The intended remote is `https://github.com/LethaboDev/finance-tracker.git`. Preserve any license notices required by the source or its dependencies.
+```sh
+sh mvnw spring-boot:run
+```
+
+Database credentials and the JWT signing secret have no production fallback. Keep secrets outside version control and use a separate database for local development.
+
+### Frontend
+
+Use Node.js 22 or later. From the repository root:
+
+```sh
+cd frontend
+cp .env.example .env.local
+npm ci
+npm run dev
+```
+
+Set `NEXT_PUBLIC_API_URL` in `frontend/.env.local` to `http://localhost:8080` for local development. Open `http://localhost:3000`.
+
+`npm run build` produces the static site in `frontend/out`. The root `index.html` is a legacy frontend and is excluded from the deployed Next.js site.
+
+## Tests
+
+Run backend tests from the repository root:
+
+```sh
+sh mvnw test
+```
+
+Backend tests use the `local` profile and an isolated in-memory database. Their signing secret is only for testing.
+
+Run frontend tests from `frontend`:
+
+```sh
+npm test
+```
+
+## Repository
+
+[LethaboDev/finance-tracker](https://github.com/LethaboDev/finance-tracker)
+
+Preserve any license notices required by the source or its dependencies.
