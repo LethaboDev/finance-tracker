@@ -24,7 +24,7 @@ In `frontend`, copy `.env.example` to `.env.local`, set `NEXT_PUBLIC_API_URL` to
 
 Owner: [LethaboDev](https://github.com/LethaboDev). Commit email: `lethabomaredi30@gmail.com`.
 
-Use your Azure for Students subscription. The frontend deploys to Azure Static Web Apps (Free), the backend to Azure App Service (F1 Free), and data lives in a new Azure PostgreSQL database. See [the Azure setup guide](deploy/AZURE.md) and `scripts/provision-azure.sh` for account setup, costs, provisioning, and deployment.
+Use your Azure for Students subscription. The frontend deploys to Azure Storage static website hosting in South Africa North, the backend to Azure App Service (F1 Free), and data lives in a new Azure PostgreSQL database. See [the Azure setup guide](deploy/AZURE.md) and `scripts/provision-azure.sh` for account setup, costs, provisioning, and deployment.
 
 GitHub Actions runs tests on `main`; Azure deployment stays disabled until your resources and credentials are configured. GitHub Pages is no longer the deployment target.
 
