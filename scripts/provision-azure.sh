@@ -65,7 +65,7 @@ az postgres flexible-server create --name "$postgres" --resource-group "$resourc
   --location "$AZURE_LOCATION" --admin-user ftadmin --admin-password "$FT_DB_PASSWORD" \
   --tier Burstable --sku-name Standard_B1ms --storage-size 32 --version 16 \
   --backup-retention 7 --zonal-resiliency Disabled --geo-redundant-backup Disabled \
-  --storage-auto-grow Disabled --public-access None --yes --output none
+  --storage-auto-grow Disabled --public-access Enabled --yes --output none
 az postgres flexible-server db create --resource-group "$resource_group" \
   --server-name "$postgres" --name finance_tracker --output none
 postgres_host="$(az postgres flexible-server show --name "$postgres" --resource-group "$resource_group" --query fullyQualifiedDomainName -o tsv)"
