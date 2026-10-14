@@ -67,7 +67,7 @@ az postgres flexible-server create --name "$postgres" --resource-group "$resourc
   --backup-retention 7 --zonal-resiliency Disabled --geo-redundant-backup Disabled \
   --storage-auto-grow Disabled --public-access None --yes --output none
 az postgres flexible-server db create --resource-group "$resource_group" \
-  --server-name "$postgres" --database-name finance_tracker --output none
+  --server-name "$postgres" --name finance_tracker --output none
 postgres_host="$(az postgres flexible-server show --name "$postgres" --resource-group "$resource_group" --query fullyQualifiedDomainName -o tsv)"
 
 # Allow only the possible outbound addresses of this App Service, not all Azure services.
