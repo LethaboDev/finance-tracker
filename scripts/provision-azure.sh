@@ -15,6 +15,11 @@ done
   echo 'Sign in to GitHub as LethaboDev first' >&2; exit 1;
 }
 gh repo view "$repo" --json name >/dev/null
+oidc_prefix="$(gh api "repos/$repo/actions/oidc/customization/sub" \
+  --header 'X-GitHub-Api-Version: 2026-03-10' --jq '.sub_claim_prefix')"
+[[ -n "$oidc_prefix" && "$oidc_prefix" != null ]] || {
+  echo 'Could not determine the repository OIDC subject prefix.' >&2; exit 1;
+}
 az account set --subscription "$AZURE_SUBSCRIPTION_ID"
 az account show --query '{subscription:name,id:id,account:user.name}' --output table
 [[ "$(az account show --query name -o tsv)" == 'Azure for Students' ]] || {
@@ -111,7 +116,7 @@ az role assignment create --assignee-object-id "$principal_id" --assignee-princi
 az identity federated-credential create --name finance-tracker-github \
   --identity-name "$identity_name" --resource-group "$resource_group" \
   --issuer https://token.actions.githubusercontent.com \
-  --subject repo:LethaboDev/finance-tracker:ref:refs/heads/main \
+  --subject "$oidc_prefix:ref:refs/heads/main" \
   --audiences api://AzureADTokenExchange --output none
 # Keep deployments disabled until every variable and secret has been configured.
 gh variable set AZURE_CLIENT_ID --repo "$repo" --body "$client_id"
