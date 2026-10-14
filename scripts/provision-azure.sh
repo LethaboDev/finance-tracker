@@ -76,7 +76,7 @@ outbound_ips="$(az webapp show --name "$webapp" --resource-group "$resource_grou
 IFS=',' read -ra addresses <<< "$outbound_ips"
 for index in "${!addresses[@]}"; do
   az postgres flexible-server firewall-rule create --resource-group "$resource_group" \
-    --name "$postgres" --rule-name "backend-$index" \
+    --server-name "$postgres" --name "backend-$index" \
     --start-ip-address "${addresses[$index]}" --end-ip-address "${addresses[$index]}" --output none
 done
 export FT_DB_HOST="$postgres_host" FT_FRONTEND_ORIGIN="$frontend_url"
